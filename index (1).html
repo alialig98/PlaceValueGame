@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#ffeb73">
+<title>Place Value POP! | Three.js maths game</title>
+<style>
+:root{--ink:#193a36;--muted:#48615d;--outline:#264b45;--yellow:#ffe568;--lime:#c5ef79;--pink:#ff99b3;--coral:#ff9169;--aqua:#80dce6;--paper:#fffaf0;--white:#fffefa;--light:#e8fbf3;--focus:#174a9c}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);font-family:'Trebuchet MS',Verdana,Arial,sans-serif;font-size:17px;line-height:1.46;background:radial-gradient(circle at 10% 16%,#ffe58c 0 7px,transparent 8px),radial-gradient(circle at 92% 28%,#fc97aa 0 6px,transparent 7px),radial-gradient(circle at 80% 80%,#71d4d4 0 8px,transparent 9px),#e4f9ed;background-size:160px 150px,185px 175px,220px 210px,auto}
+button{font:inherit;cursor:pointer}button:focus-visible{outline:4px solid var(--focus);outline-offset:3px}button:disabled{cursor:default}
+[hidden]{display:none!important}
+.app{max-width:1230px;margin:auto;padding:21px clamp(12px,3vw,30px) 38px}
+.hero{position:relative;isolation:isolate;background:var(--yellow);border:3px solid var(--outline);border-radius:21px;box-shadow:7px 7px 0 #193a3629;padding:24px clamp(16px,3vw,28px);overflow:hidden;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.hero:before{content:"";width:240px;height:240px;border:28px solid #fff8b4;position:absolute;right:-34px;top:-91px;border-radius:50%;z-index:-1;transform:rotate(-20deg)}
+.hero:after{content:"✦  ✳  ✦";position:absolute;right:25px;bottom:-6px;letter-spacing:14px;font-size:42px;color:#e27d59;opacity:.65;z-index:-1}
+.eyebrow{display:inline-block;background:#193a36;color:white;padding:4px 11px;border-radius:999px;font-size:12px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+h1{margin:10px 0 6px;font-size:clamp(2rem,5vw,3.85rem);line-height:1.02;letter-spacing:-.05em;font-weight:900}h1 span{color:#c4473a;text-shadow:1px 1px 0 #fff8d4}
+.hero p{margin:0;font-size:clamp(.9rem,1.4vw,1.1rem);font-weight:700}
+.hero-sticker{flex:none;display:flex;align-items:center;justify-content:center;background:var(--pink);border:3px solid var(--outline);border-radius:35% 45% 35% 45%;transform:rotate(10deg);font-weight:900;font-size:clamp(1rem,2vw,1.35rem);height:104px;width:111px;box-shadow:4px 5px 0 #193a362b;text-align:center;line-height:1.15}
+.instructions{margin:19px 0 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.instructions strong{font-size:.86rem;text-transform:uppercase;letter-spacing:.05em}
+.rule-chip{display:inline-flex;align-items:center;gap:7px;padding:7px 12px;background:#fffef9;border:2px solid #bad6ca;border-radius:11px;font-weight:800;font-size:14px}
+.rule-chip b{font-size:18px}.rule-chip:nth-of-type(1) b{color:#b14e35}.rule-chip:nth-of-type(2) b{color:#137c86}.rule-chip:nth-of-type(3) b{color:#95521c}
+.levelbar{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin:12px 0 20px}
+.levelbar>span{font-weight:900;text-transform:uppercase;font-size:.82rem;letter-spacing:.05em;margin-right:4px}
+.level{min-height:49px;border:2px solid var(--outline);border-radius:13px;padding:8px 18px;font-weight:900;color:var(--ink);box-shadow:3px 3px 0 var(--outline);transition:transform .15s,box-shadow .15s}
+.level:nth-of-type(1){background:var(--coral)}.level:nth-of-type(2){background:var(--aqua)}.level:nth-of-type(3){background:var(--lime)}.level:nth-of-type(4){background:var(--pink)}
+.level:hover{transform:translateY(-2px)}.level[aria-pressed="true"]{box-shadow:inset 0 0 0 3px #fff,3px 3px 0 var(--outline)}
+.workspace{display:grid;grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr);gap:18px;align-items:stretch}
+.card{background:var(--white);border:2px solid var(--outline);border-radius:20px;box-shadow:5px 6px 0 #193a3620;overflow:hidden;min-width:0}
+.card-head{background:var(--aqua);padding:14px 19px;border-bottom:2px solid var(--outline);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.card-head.pink{background:#ffc2d1}.section-title{font-size:.92rem;letter-spacing:.035em;font-weight:900;text-transform:uppercase}
+.score{background:#fffefa;border:2px solid var(--outline);border-radius:999px;padding:5px 12px;font-weight:900;font-size:.91rem;white-space:nowrap}
+.card-body{padding:19px}.question-top{font-size:.92rem;font-weight:900;color:#536866}
+.problem{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0 13px;font-weight:900;line-height:1.07;font-size:clamp(2.7rem,5vw,4.7rem);letter-spacing:-.04em}
+.problem .times{background:#ffe777;padding:5px 12px;border-radius:14px;border:2px solid var(--outline);font-size:.79em;letter-spacing:-.045em}
+.prompt{font-weight:700;color:var(--muted);margin:0}
+.choices{display:grid;gap:11px;margin:16px 0}
+.choice{width:100%;display:flex;align-items:center;justify-content:space-between;border:2px solid var(--outline);color:var(--ink);border-radius:14px;padding:11px 16px;font-weight:900;font-size:clamp(1.35rem,3vw,1.8rem);text-align:left;min-height:64px;transition:transform .12s,background .12s;box-shadow:3px 3px 0 #193a3620}
+.choice:nth-child(3n+1){background:#fff0b6}.choice:nth-child(3n+2){background:#e4f7ce}.choice:nth-child(3n){background:#dcf9fc}
+.choice:after{content:"○";font-size:24px}.choice:hover:not(:disabled){transform:translateX(3px);filter:saturate(1.12)}
+.choice.correct{background:#b9efa6;border-color:#25674b}.choice.correct:after{content:"✔";color:#135b3b}
+.choice.wrong{background:#ffd9d8;border-color:#a53c3c}.choice.wrong:after{content:"↻";color:#8f3434}
+.message{font-weight:800;padding:12px;border-radius:9px;background:#dff5ce;border:2px solid #5d944b;margin:12px 0}.message.retry{background:#fff0eb;border-color:#d36d54}
+.hint{font-size:.97rem;background:#fff3bf;padding:12px 14px;border:2px dashed #b38d36;border-radius:10px;margin:12px 0}
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:14px 0 0}
+.secondary,.primary{font-weight:900;border:2px solid var(--outline);border-radius:11px;padding:10px 14px;min-height:45px;box-shadow:3px 3px 0 #193a3627}
+.secondary{background:white;color:var(--ink)}.primary{background:var(--coral);color:var(--ink)}.primary:hover,.secondary:hover{filter:brightness(.98)}
+.progress-row{display:flex;gap:10px;align-items:center;margin-top:21px;font-size:.8rem;font-weight:900}
+.progress-track{height:12px;border-radius:99px;border:1px solid #a5b3aa;background:#e4ebdd;flex:1;overflow:hidden}
+.progress-fill{height:100%;width:0;background:#62b978;border-radius:99px;transition:width .25s}
+.visual-head-note{font-size:.81rem;font-weight:700;color:#385a57}
+.scene-wrap{padding:15px 13px 0}
+#scene{height:245px;position:relative;background:linear-gradient(#d6f6ec,#fff5d1);border:2px solid #add6c5;border-radius:14px;overflow:hidden;touch-action:pan-y}
+#scene canvas{width:100%;height:100%;display:block;touch-action:none;cursor:grab}#scene canvas:active{cursor:grabbing}
+#fallback{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-items:stretch;gap:7px;height:100%;padding:10px}
+.mini-place{display:flex;flex-direction:column;justify-content:space-between;align-items:center;background:#fffcf2c9;border:1px solid #77baa8;border-radius:9px;padding:8px 3px;min-width:0}
+.mini-place-name{font-size:clamp(10px,1.3vw,13px);font-weight:900;color:#25584e}
+.mini-place-items{min-height:100px;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;align-content:center;gap:5px}
+.mini-place-count{font-size:13px;font-weight:900;color:#315950}
+.micro-block{flex:none;border:1px solid #386259;box-shadow:2px 2px 0 #2f595c55}
+.micro-block.thousand{background:#4ebacc;width:19px;height:19px;border-radius:3px;transform:skewY(-9deg)}
+.micro-block.hundred{background:#ffdf54;width:21px;height:11px;border-radius:2px;transform:skewX(-12deg)}
+.micro-block.ten{background:#ff8f66;width:9px;height:30px;border-radius:2px}
+.micro-block.one{background:#ff97b3;width:11px;height:11px;border-radius:2px}
+.mini-place-empty{font-size:28px;font-weight:900;color:#7d9a90}
+@media(max-width:500px){#fallback{gap:4px;padding:6px}.mini-place{padding:6px 2px}.mini-place-items{gap:3px}.micro-block.thousand{width:15px;height:15px}.micro-block.hundred{width:18px}.micro-block.ten{height:23px}}
+.chart-area{padding:13px 16px 17px}
+.chart-title{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;font-weight:900;font-size:.88rem;margin-bottom:10px}
+.view-switch{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.switch-btn{border:2px solid var(--outline);background:white;color:var(--ink);font-size:.82rem;border-radius:999px;font-weight:900;padding:7px 13px}
+.switch-btn[aria-pressed="true"]{background:#193a36;color:white}
+.place-table{border-collapse:separate;border-spacing:4px;width:100%;table-layout:fixed;margin:0}
+.place-table th,.place-table td{text-align:center;border:2px solid #325652;border-radius:8px;padding:5px 3px;overflow-wrap:anywhere}
+.place-table thead th{font-size:clamp(.66rem,1.4vw,.84rem);line-height:1.22;height:39px;color:#132b28}
+.place-table thead th:nth-child(1){background:var(--aqua)}.place-table thead th:nth-child(2){background:var(--yellow)}.place-table thead th:nth-child(3){background:var(--coral)}.place-table thead th:nth-child(4){background:var(--pink)}
+.place-table tbody td{font-size:clamp(1.6rem,3.8vw,2.5rem);font-weight:900;height:57px;background:#fffdf7}
+.place-table tbody tr.after td{background:#e3f7d8}.place-table tbody td.zero{color:#86958d}
+.place-table caption{font-size:0;text-align:left}
+.row-labels{display:flex;justify-content:space-between;gap:6px;margin:5px 3px;font-size:.77rem;font-weight:900}
+.chart-note{background:#e8f9f1;padding:9px 11px;border-left:5px solid #36a4a4;border-radius:7px;font-size:.88rem;font-weight:800;margin:12px 3px 0}
+.legend{display:flex;flex-wrap:wrap;gap:7px 13px;margin:12px 3px 0;font-size:.76rem;font-weight:800;color:#395951}
+.legend span{display:inline-flex;gap:5px;align-items:center}.dot{display:inline-block;height:12px;width:12px;border:1px solid #173a32;border-radius:3px}
+.foot{margin-top:21px;font-size:.83rem;font-weight:700;color:#31564e;text-align:center}
+@media(max-width:810px){.workspace{grid-template-columns:1fr}.hero-sticker{height:80px;width:85px}.card-body{padding:16px}}
+@media(max-width:500px){.app{padding:10px 9px 26px}.hero{padding:16px 14px}.hero-sticker{display:none}.level{flex:1;padding:9px 10px}.levelbar>span{width:100%}.card-head{padding:12px 14px}.scene-wrap{padding:10px 8px 0}#scene{height:215px}.chart-area{padding:8px 9px 14px}.place-table{border-spacing:2px}.place-table thead th{font-size:.65rem;padding:5px 1px}.place-table tbody td{font-size:1.9rem}.problem{margin-top:11px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="hero">
+    <div><span class="eyebrow">Maths mission · KS2</span><h1>PLACE VALUE <span>POP!</span></h1><p>Choose an answer. Watch the 3D blocks change. Collect stars!</p></div>
+    <div class="hero-sticker" aria-label="Year 3 maths">YEAR<br>3!</div>
+  </header>
+  <div class="instructions" aria-label="Multiplication place value reminder">
+    <strong>Every digit moves left:</strong>
+    <span class="rule-chip"><b>×10</b> = 1 place</span>
+    <span class="rule-chip"><b>×100</b> = 2 places</span>
+    <span class="rule-chip"><b>×1,000</b> = 3 places</span>
+  </div>
+  <nav class="levelbar" aria-label="Choose a game level">
+    <span>Pick your power:</span>
+    <button class="level" data-level="10" aria-pressed="true">× 10</button>
+    <button class="level" data-level="100" aria-pressed="false">× 100</button>
+    <button class="level" data-level="1000" aria-pressed="false">× 1,000</button>
+    <button class="level" data-level="mix" aria-pressed="false">Mystery mix ★</button>
+  </nav>
+  <div class="workspace">
+    <section class="card" aria-labelledby="questionHeading">
+      <div class="card-head pink"><div id="questionHeading" class="section-title">★ Your maths mission</div><div class="score" id="score">★ 0 stars</div></div>
+      <div class="card-body">
+        <div class="question-top" id="count">QUESTION 1 OF 5</div>
+        <div class="problem" id="problem"><span>4</span><span class="times">× 10</span></div>
+        <p class="prompt" id="prompt">Tap the correct answer.</p>
+        <div class="choices" id="choices" role="group" aria-label="Answer choices"></div>
+        <div id="feedback" class="message" role="status" aria-live="polite" hidden></div>
+        <div id="hint" class="hint" hidden></div>
+        <div class="controls"><button type="button" id="hintButton" class="secondary" aria-controls="hint" aria-expanded="false">💡 Give me a clue</button><button type="button" id="nextButton" class="primary" hidden>Next question →</button></div>
+        <div class="progress-row"><div class="progress-track" aria-label="Progress through this round"><div class="progress-fill" id="progress"></div></div><span id="progressText">1 / 5</span></div>
+      </div>
+    </section>
+    <section class="card" aria-labelledby="visualHeading">
+      <div class="card-head"><div id="visualHeading" class="section-title">◉ Your place-value playground</div><div class="visual-head-note">3D shapes · drag to rotate</div></div>
+      <div class="scene-wrap"><div id="scene" role="img" aria-label="3D blocks matching the place-value digits below"><div id="fallback" aria-hidden="true"></div></div></div>
+      <div class="chart-area">
+        <div class="chart-title"><span id="numberTitle">Number: 4</span><span id="stageTitle">BEFORE</span></div>
+        <div id="switchGroup" class="view-switch" aria-label="Choose before or after view" role="group" hidden><button id="beforeButton" class="switch-btn" aria-pressed="false">See before</button><button id="afterButton" class="switch-btn" aria-pressed="true">See after</button></div>
+        <table class="place-table" aria-label="Place-value chart"><caption>Place value in thousands, hundreds, tens and ones</caption>
+          <thead><tr><th scope="col">Thousands</th><th scope="col">Hundreds</th><th scope="col">Tens</th><th scope="col">Ones</th></tr></thead>
+          <tbody><tr id="digitsRow"><td>0</td><td>0</td><td>0</td><td>4</td></tr></tbody>
+        </table>
+        <div id="chartNote" class="chart-note" aria-live="polite">Each column has a different value. Try a question!</div>
+        <div class="legend" aria-label="Colours and shapes in 3D"><span><i class="dot" style="background:#80dce6"></i>Thousands: cubes</span><span><i class="dot" style="background:#ffe568"></i>Hundreds: flats</span><span><i class="dot" style="background:#ff9169"></i>Tens: rods</span><span><i class="dot" style="background:#ff99b3"></i>Ones: small cubes</span></div>
+      </div>
+    </section>
+  </div>
+  <p class="foot">Teacher note: ×1,000 is an extra challenge. Works with keyboard, mouse or touch; no pupil logins or data collection. Three.js requires internet, but the game works without the 3D display.</p>
+</main>
+<script type="module">
+const questionSets={
+  '10':[[4,10],[12,10],[25,10],[48,10],[105,10]],
+  '100':[[3,100],[6,100],[12,100],[25,100],[39,100]],
+  '1000':[[2,1000],[4,1000],[6,1000],[7,1000],[9,1000]],
+  mix:[[9,10],[31,10],[5,100],[18,100],[6,1000],[8,1000]]
+};
+const $=id=>document.getElementById(id);
+const format=n=>Number(n).toLocaleString('en-GB');
+const digitsOf=n=>String(n).padStart(4,'0').slice(-4).split('').map(Number);
+let level='10',index=0,stars=0,wrongAttempt=false,solved=false,completed=false,modeView='before',questions=[];
+let sceneModel={setValue:()=>{}};
+function updateFallback(number){
+ const mount=$('fallback');if(!mount)return;
+ mount.replaceChildren();
+ const names=['Thousands','Hundreds','Tens','Ones'],classes=['thousand','hundred','ten','one'];
+ digitsOf(number).forEach((digit,i)=>{
+  const section=document.createElement('div');section.className='mini-place';
+  const heading=document.createElement('div');heading.className='mini-place-name';heading.textContent=names[i];
+  const pieces=document.createElement('div');pieces.className='mini-place-items';
+  if(digit===0){const empty=document.createElement('span');empty.textContent='0';empty.className='mini-place-empty';pieces.append(empty)}
+  else for(let j=0;j<digit;j++){const block=document.createElement('i');block.className='micro-block '+classes[i];pieces.append(block)}
+  const count=document.createElement('div');count.className='mini-place-count';count.textContent=digit+' '+(digit===1?'block':'blocks');
+  section.append(heading,pieces,count);mount.append(section);
+ });
+}
+function shuffle(items){for(let i=items.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[items[i],items[j]]=[items[j],items[i]]}return items}
+function choicesFor(n,m){
+ const answer=n*m,options=[answer];
+ const candidates=[answer/10,answer*10,n*10,n*100,n*1000,n,answer+10,answer+100,answer-10,n+m];
+ for(const c of candidates){if(Number.isInteger(c)&&c>0&&c<=9999&&!options.includes(c))options.push(c);if(options.length===3)break}
+ return shuffle(options);
+}
+function hint(open){$('hint').hidden=!open;$('hintButton').setAttribute('aria-expanded',String(open));$('hintButton').textContent=open?'Hide the clue':'💡 Give me a clue'}
+function showMessage(text,wrong=false){$('feedback').textContent=text;$('feedback').hidden=false;$('feedback').classList.toggle('retry',wrong)}
+function showNumber(n,stage){
+ modeView=stage;
+ const ds=digitsOf(n),tr=$('digitsRow');tr.replaceChildren();
+ ds.forEach(d=>{let cell=document.createElement('td');cell.textContent=String(d);if(d===0)cell.className='zero';tr.append(cell)});
+ $('numberTitle').textContent='Number: '+format(n);
+ $('stageTitle').textContent=stage==='before'?'BEFORE':'AFTER ✓';
+ $('beforeButton').setAttribute('aria-pressed',String(stage==='before'));
+ $('afterButton').setAttribute('aria-pressed',String(stage==='after'));
+ $('scene').setAttribute('aria-label','3D models for '+format(n)+'. The digits are '+ds[0]+' thousands, '+ds[1]+' hundreds, '+ds[2]+' tens and '+ds[3]+' ones.');
+ sceneModel.setValue(n);updateFallback(n);
+}
+function loadQuestion(){
+ solved=false;wrongAttempt=false;completed=false;
+ const [n,m]=questions[index];
+ $('problem').replaceChildren();
+ const first=document.createElement('span');first.textContent=format(n);
+ const factor=document.createElement('span');factor.className='times';factor.textContent='× '+format(m);
+ $('problem').append(first,factor);
+ $('prompt').textContent='Tap the correct answer.';
+ $('count').textContent='QUESTION '+(index+1)+' OF '+questions.length;
+ $('progressText').textContent=(index+1)+' / '+questions.length;
+ $('progress').style.width=(100*index/questions.length)+'%';
+ $('choices').replaceChildren();
+ choicesFor(n,m).forEach(value=>{
+   let b=document.createElement('button');b.type='button';b.className='choice';b.textContent=format(value);b.setAttribute('aria-label',format(value));b.addEventListener('click',()=>choose(b,value));$('choices').append(b);
+ });
+ $('feedback').hidden=true;$('nextButton').hidden=true;$('hintButton').hidden=false;
+ $('switchGroup').hidden=true;
+ const places=Math.log10(m);
+ $('hint').textContent='Look at the place-value chart. Each digit moves '+places+' place'+(places===1?'':'s')+' LEFT. Empty places need a 0. Try moving each digit in your head.';
+ hint(false);
+ $('chartNote').textContent='Start with '+format(n)+'. What will change when you multiply?';
+ showNumber(n,'before');
+}
+function choose(button,value){
+ if(solved||completed)return;
+ const [n,m]=questions[index],answer=n*m,spaces=Math.log10(m);
+ if(value!==answer){wrongAttempt=true;button.disabled=true;button.classList.add('wrong');showMessage('Not quite. Try again! Move every digit '+spaces+' place'+(spaces===1?'':'s')+' to the left.',true);return}
+ solved=true;stars+=wrongAttempt?1:2;
+ $('score').textContent='★ '+stars+' star'+(stars===1?'':'s');
+ $('choices').querySelectorAll('button').forEach(b=>{b.disabled=true;if(b===button)b.classList.add('correct')});
+ showMessage('Brilliant! '+format(n)+' × '+format(m)+' = '+format(answer)+'. Every digit moves '+spaces+' place'+(spaces===1?'':'s')+' left.');
+ $('chartNote').textContent='Look! '+format(n)+' has become '+format(answer)+'. The empty places have 0s.';
+ $('switchGroup').hidden=false;showNumber(answer,'after');
+ $('progress').style.width=(100*(index+1)/questions.length)+'%';
+ $('hintButton').hidden=true;hint(false);
+ $('nextButton').hidden=false;$('nextButton').textContent=index===questions.length-1?'See my stars ★':'Next question →';$('nextButton').focus();
+}
+function finish(){
+ completed=true;solved=false;
+ $('count').textContent='MISSION COMPLETE!';
+ $('problem').replaceChildren();
+ const done=document.createElement('span');done.textContent='YOU DID IT! ★';done.style.fontSize='clamp(2rem,4vw,3rem)';$('problem').append(done);
+ $('prompt').textContent='You collected '+stars+' out of '+questions.length*2+' stars. Nice work!';
+ $('choices').replaceChildren();$('feedback').hidden=true;$('hintButton').hidden=true;
+ $('nextButton').hidden=false;$('nextButton').textContent='Play this level again ↻';
+ $('progressText').textContent='Finished';$('progress').style.width='100%';
+ $('chartNote').textContent='Pick another level or replay this mission.';
+}
+function start(newLevel){
+ level=newLevel;index=0;stars=0;questions=questionSets[level].map(pair=>pair.slice());
+ $('score').textContent='★ 0 stars';
+ document.querySelectorAll('[data-level]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.level===level)));
+ loadQuestion();
+}
+$('hintButton').addEventListener('click',()=>hint($('hint').hidden));
+$('nextButton').addEventListener('click',()=>{if(completed){start(level)}else if(solved&&index===questions.length-1)finish();else if(solved){index++;loadQuestion()}});
+$('beforeButton').addEventListener('click',()=>{if(solved||completed)showNumber(questions[index][0],'before')});
+$('afterButton').addEventListener('click',()=>{if(solved||completed)showNumber(questions[index][0]*questions[index][1],'after')});
+document.querySelectorAll('[data-level]').forEach(b=>b.addEventListener('click',()=>start(b.dataset.level)));
+start('10');
+// 3D is a visual enhancement. The questions and accessible place-value chart work without it.
+(async()=>{
+ try{
+  const T=await import('https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js');
+  const mount=$('scene'),scene=new T.Scene();scene.background=new T.Color('#ddf8eb');
+  const camera=new T.OrthographicCamera(-7,7,4.5,-4.5,.1,100);camera.position.set(0,8.3,16);camera.lookAt(0,0,0);
+  const renderer=new T.WebGLRenderer({antialias:true,powerPreference:'low-power'});renderer.outputColorSpace=T.SRGBColorSpace;renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.6));renderer.shadowMap.enabled=true;
+  $('fallback').remove();mount.appendChild(renderer.domElement);
+  scene.add(new T.HemisphereLight('#ffffff','#66958c',2.3));
+  const lamp=new T.DirectionalLight('#ffffff',2.4);lamp.position.set(-4,9,7);lamp.castShadow=true;lamp.shadow.mapSize.set(1024,1024);lamp.shadow.camera.left=-12;lamp.shadow.camera.right=12;lamp.shadow.camera.top=12;lamp.shadow.camera.bottom=-12;scene.add(lamp);
+  const world=new T.Group();scene.add(world);
+  const xs=[-4.05,-1.35,1.35,4.05];
+  const mats=[0x48b7c7,0xffdc4a,0xff8756,0xff8fae].map(c=>new T.MeshStandardMaterial({color:c,roughness:.66}));
+  const padMat=new T.MeshStandardMaterial({color:0xfffcf2,roughness:.9});
+  const edgeMat=new T.LineBasicMaterial({color:0x2f4944,transparent:true,opacity:.38});
+  const base=new T.BoxGeometry(2.46,.18,2.6);
+  xs.forEach((x,i)=>{
+   const pad=new T.Mesh(base,padMat);pad.position.set(x,-.43,0);pad.receiveShadow=true;world.add(pad);
+   const stripe=new T.Mesh(new T.BoxGeometry(2.36,.06,.16),mats[i]);stripe.position.set(x,-.31,1.20);world.add(stripe);
+  });
+  const shapes=[new T.BoxGeometry(.61,.61,.61),new T.BoxGeometry(.67,.12,.67),new T.BoxGeometry(.22,1.0,.22),new T.BoxGeometry(.27,.27,.27)];
+  let blocks=new T.Group();world.add(blocks);let bounce=0;
+  function rebuild(number){
+   world.remove(blocks);blocks.traverse(obj=>{if(obj.userData.edge)obj.geometry.dispose()});
+   blocks=new T.Group();world.add(blocks);
+   digitsOf(number).forEach((amount,i)=>{
+    for(let j=0;j<amount;j++){
+     const item=new T.Mesh(shapes[i],mats[i]);item.position.set(xs[i]+(j%3-1)*.72,i===1?-.18:i===2?.11:i===3?-.13:0,(Math.floor(j/3)-1)*.75);item.castShadow=true;item.receiveShadow=true;
+     const wire=new T.LineSegments(new T.EdgesGeometry(shapes[i]),edgeMat);wire.userData.edge=true;item.add(wire);blocks.add(item);
+    }
+   });
+   bounce=1;
+  }
+  sceneModel.setValue=rebuild;
+  rebuild(questions[index][0]);
+  let down=false,oldX=0,oldY=0,rotX=-.13,rotY=0;
+  renderer.domElement.addEventListener('pointerdown',e=>{down=true;oldX=e.clientX;oldY=e.clientY;renderer.domElement.setPointerCapture(e.pointerId)});
+  renderer.domElement.addEventListener('pointermove',e=>{if(!down)return;rotY+=(e.clientX-oldX)*.006;rotX=Math.min(.35,Math.max(-.4,rotX+(e.clientY-oldY)*.003));oldX=e.clientX;oldY=e.clientY});
+  renderer.domElement.addEventListener('pointerup',()=>down=false);
+  renderer.domElement.addEventListener('pointercancel',()=>down=false);
+  function resize(){let w=mount.clientWidth,h=mount.clientHeight;if(!w||!h)return;camera.left=-7;camera.right=7;camera.top=7*h/w;camera.bottom=-7*h/w;camera.updateProjectionMatrix();renderer.setSize(w,h,false)}
+  const observer=new ResizeObserver(resize);observer.observe(mount);resize();
+  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
+  function animate(){if(!mount.isConnected){observer.disconnect();renderer.dispose();return}requestAnimationFrame(animate);world.rotation.x=rotX;world.rotation.y=rotY;if(!reduced.matches&&bounce>0){blocks.position.y=Math.sin((1-bounce)*Math.PI)*.24;bounce=Math.max(0,bounce-.05)}else blocks.position.y=0;renderer.render(scene,camera)}
+  animate();
+ }catch(err){console.warn('3D not available; showing accessible colour-block diagram:',err)}
+})();
+</script>
+</body>
+</html>
